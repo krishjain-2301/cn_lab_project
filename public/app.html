@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FileShare — Dashboard</title>
+  <meta name="description" content="FileShare real-time dashboard for sending files to individuals and groups." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="logo"><span class="logo-icon">⚡</span><span>FileShare</span></div>
+      <div class="my-badge" id="myBadge">
+        <div class="avatar" id="myAvatar">?</div>
+        <div>
+          <div class="my-name" id="myName">Connecting…</div>
+          <div class="my-status">● Online</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-hdr">
+        <span class="section-title">Direct Messages</span>
+        <span class="section-count" id="userCount">0</span>
+      </div>
+      <div class="user-list" id="userList">
+        <div class="empty-hint">No other users online</div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <div class="section-hdr">
+        <span class="section-title">Rooms</span>
+        <button class="create-room-btn" id="createRoomBtn" title="Create room">＋</button>
+      </div>
+      <div class="room-list" id="roomList">
+        <div class="empty-hint">No rooms yet</div>
+      </div>
+      <!-- Create room input (hidden by default) -->
+      <div class="create-room-wrap" id="createRoomWrap" style="display:none">
+        <input type="text" id="newRoomInput" class="room-input" placeholder="Room name…" maxlength="40" />
+        <button class="room-create-go" id="roomCreateGo">Create</button>
+        <button class="room-cancel" id="roomCancel">✕</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main panel -->
+  <main class="main" id="main">
+    <!-- Welcome state -->
+    <div class="welcome-screen" id="welcomeScreen">
+      <div class="welcome-glow"></div>
+      <div class="welcome-icon">👋</div>
+      <h2>Welcome to FileShare</h2>
+      <p>Select a user for a private chat, or join / create a room to share with your team.</p>
+      <div class="welcome-tips">
+        <div class="tip">
+          <span class="tip-icon">→</span>
+          <span>Click a user in <strong>Direct Messages</strong> to start a private session</span>
+        </div>
+        <div class="tip">
+          <span class="tip-icon">→</span>
+          <span>Click <strong>＋</strong> to create a new room and share with multiple people</span>
+        </div>
+        <div class="tip">
+          <span class="tip-icon">→</span>
+          <span>Drag &amp; drop files or click the attach button to share any file up to 500 MB</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat panel -->
+    <div class="chat-panel" id="chatPanel" style="display:none">
+      <!-- Chat header -->
+      <div class="chat-header" id="chatHeader">
+        <div class="chat-header-info">
+          <div class="chat-avatar" id="chatAvatar">?</div>
+          <div>
+            <div class="chat-name" id="chatName">—</div>
+            <div class="chat-sub" id="chatSub">—</div>
+          </div>
+        </div>
+        <div class="chat-header-actions">
+          <button class="hdr-btn" id="leaveRoomBtn" style="display:none" title="Leave room">Leave Room</button>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="messages" id="messages">
+        <div class="day-divider"><span>Today</span></div>
+      </div>
+
+      <!-- Drop zone overlay -->
+      <div class="drop-overlay" id="dropOverlay">
+        <div class="drop-icon">📂</div>
+        <div class="drop-label">Drop file to send</div>
+      </div>
+
+      <!-- Input bar -->
+      <div class="input-bar" id="inputBar">
+        <!-- Progress bar (hidden initially) -->
+        <div class="upload-progress" id="uploadProgress" style="display:none">
+          <div class="progress-info">
+            <span class="progress-name" id="progressName">Uploading…</span>
+            <span class="progress-pct" id="progressPct">0%</span>
+          </div>
+          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+        </div>
+
+        <div class="input-row">
+          <label class="attach-btn" for="fileInput" title="Attach file">
+            📎
+            <input type="file" id="fileInput" style="display:none" />
+          </label>
+          <input
+            type="text"
+            id="msgInput"
+            class="msg-input"
+            placeholder="Type a message…"
+            autocomplete="off"
+          />
+          <button class="send-btn" id="sendBtn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Toast container -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
