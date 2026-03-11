@@ -8,10 +8,12 @@ const fs = require('fs');
 const cors = require('cors');
 
 const app = express();
+app.set('trust proxy', 1); // Required behind Render's reverse proxy
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: { origin: '*' },
-  maxHttpBufferSize: 1e8 // 100MB for socket transfers
+  maxHttpBufferSize: 1e8, // 100MB for socket transfers
+  transports: ['websocket', 'polling'] // Ensure compatibility with Render proxy
 });
 
 app.use(cors());
