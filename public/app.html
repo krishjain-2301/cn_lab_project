@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SwamiShare — Dashboard</title>
-  <meta name="description" content="SwamiShare real-time dashboard for sending files to individuals and groups." />
+  <title>FileShare — Dashboard</title>
+  <meta name="description" content="FileShare real-time dashboard for sending files to individuals and groups." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="app.css" />
@@ -13,8 +13,8 @@
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <div class="logo"><span class="logo-icon">⚡</span><span>SwamiShare</span></div>
-      <div class="my-badge" id="myBadge">
+      <div class="logo"><span class="logo-icon">⚡</span><span>FileShare</span></div>
+      <div class="my-badge">
         <div class="avatar" id="myAvatar">?</div>
         <div>
           <div class="my-name" id="myName">Connecting…</div>
@@ -41,7 +41,6 @@
       <div class="room-list" id="roomList">
         <div class="empty-hint">No rooms yet</div>
       </div>
-      <!-- Create room input (hidden by default) -->
       <div class="create-room-wrap" id="createRoomWrap" style="display:none">
         <input type="text" id="newRoomInput" class="room-input" placeholder="Room name…" maxlength="40" />
         <button class="room-create-go" id="roomCreateGo">Create</button>
@@ -56,21 +55,12 @@
     <div class="welcome-screen" id="welcomeScreen">
       <div class="welcome-glow"></div>
       <div class="welcome-icon">👋</div>
-      <h2>Welcome to SwamiShare</h2>
+      <h2>Welcome to FileShare</h2>
       <p>Select a user for a private chat, or join / create a room to share with your team.</p>
       <div class="welcome-tips">
-        <div class="tip">
-          <span class="tip-icon">→</span>
-          <span>Click a user in <strong>Direct Messages</strong> to start a private session</span>
-        </div>
-        <div class="tip">
-          <span class="tip-icon">→</span>
-          <span>Click <strong>＋</strong> to create a new room and share with multiple people</span>
-        </div>
-        <div class="tip">
-          <span class="tip-icon">→</span>
-          <span>Drag &amp; drop files or click the attach button to share any file up to 500 MB</span>
-        </div>
+        <div class="tip"><span class="tip-icon">→</span><span>Click a user in <strong>Direct Messages</strong> to start a private session</span></div>
+        <div class="tip"><span class="tip-icon">→</span><span>Click <strong>＋</strong> to create a room — you become the admin</span></div>
+        <div class="tip"><span class="tip-icon">→</span><span>As admin: approve joins, set permissions, and configure auto-delete</span></div>
       </div>
     </div>
 
@@ -84,9 +74,58 @@
             <div class="chat-name" id="chatName">—</div>
             <div class="chat-sub" id="chatSub">—</div>
           </div>
+          <!-- Admin crown badge -->
+          <div class="admin-crown" id="adminCrown" style="display:none" title="You are the admin">👑 Admin</div>
         </div>
         <div class="chat-header-actions">
-          <button class="hdr-btn" id="leaveRoomBtn" style="display:none" title="Leave room">Leave Room</button>
+          <!-- Admin settings button -->
+          <button class="hdr-btn admin-btn" id="adminSettingsBtn" style="display:none" title="Room settings">⚙ Settings</button>
+          <button class="hdr-btn leave-btn" id="leaveRoomBtn" style="display:none">Leave</button>
+        </div>
+      </div>
+
+      <!-- Admin panel (settings + member list) -->
+      <div class="admin-panel" id="adminPanel" style="display:none">
+        <div class="admin-panel-inner">
+          <div class="admin-panel-header">
+            <span>⚙ Room Settings</span>
+            <button class="close-admin-btn" id="closeAdminBtn">✕</button>
+          </div>
+
+          <!-- Join toggle -->
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Allow new joins</div>
+              <div class="setting-desc">When off, no one can request to join</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="allowJoinToggle" checked />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <!-- Auto-delete -->
+          <div class="setting-row">
+            <div class="setting-info">
+              <div class="setting-label">Auto-delete messages</div>
+              <div class="setting-desc">Messages disappear after the set time</div>
+            </div>
+            <select class="setting-select" id="autoDeleteSelect">
+              <option value="0">Permanent</option>
+              <option value="30000">30 seconds</option>
+              <option value="60000">1 minute</option>
+              <option value="300000">5 minutes</option>
+              <option value="600000">10 minutes</option>
+            </select>
+          </div>
+
+          <button class="apply-settings-btn" id="applySettingsBtn">Apply Settings</button>
+
+          <!-- Members list -->
+          <div class="members-section">
+            <div class="members-title">Members</div>
+            <div class="members-list" id="membersList"></div>
+          </div>
         </div>
       </div>
 
@@ -101,9 +140,13 @@
         <div class="drop-label">Drop file to send</div>
       </div>
 
+      <!-- No-permission banner -->
+      <div class="no-perm-banner" id="noPermBanner" style="display:none">
+        🚫 You don't have permission to send in this room
+      </div>
+
       <!-- Input bar -->
       <div class="input-bar" id="inputBar">
-        <!-- Progress bar (hidden initially) -->
         <div class="upload-progress" id="uploadProgress" style="display:none">
           <div class="progress-info">
             <span class="progress-name" id="progressName">Uploading…</span>
@@ -111,28 +154,44 @@
           </div>
           <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
         </div>
-
         <div class="input-row">
-          <label class="attach-btn" for="fileInput" title="Attach file">
+          <label class="attach-btn" for="fileInput" title="Attach file" id="attachLabel">
             📎
             <input type="file" id="fileInput" style="display:none" />
           </label>
-          <input
-            type="text"
-            id="msgInput"
-            class="msg-input"
-            placeholder="Type a message…"
-            autocomplete="off"
-          />
+          <input type="text" id="msgInput" class="msg-input" placeholder="Type a message…" autocomplete="off" />
           <button class="send-btn" id="sendBtn">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-            </svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
           </button>
         </div>
       </div>
     </div>
   </main>
+
+  <!-- Join Request Modal (shown to admin) -->
+  <div class="modal-overlay" id="joinRequestOverlay" style="display:none">
+    <div class="modal" id="joinRequestModal">
+      <div class="modal-icon">🔔</div>
+      <div class="modal-title">Join Request</div>
+      <div class="modal-body" id="joinRequestBody">Someone wants to join</div>
+      <div class="modal-actions">
+        <button class="modal-btn approve" id="approveBtn">✓ Approve</button>
+        <button class="modal-btn reject" id="rejectBtn">✕ Reject</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Pending state overlay -->
+  <div class="modal-overlay" id="pendingOverlay" style="display:none">
+    <div class="modal">
+      <div class="modal-icon">⏳</div>
+      <div class="modal-title">Waiting for approval</div>
+      <div class="modal-body" id="pendingBody">The room admin needs to approve your request.</div>
+      <div class="modal-actions">
+        <button class="modal-btn reject" onclick="cancelPending()">Cancel</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Toast container -->
   <div class="toast-container" id="toastContainer"></div>
