@@ -136,6 +136,17 @@ body { background: var(--bg); color: var(--text); font-family: var(--font); disp
 .setting-select { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font); font-size: 13px; padding: 7px 10px; outline: none; cursor: pointer; }
 .setting-select:focus { border-color: var(--accent); }
 
+/* Custom timer row */
+.custom-timer-row { padding: 12px 0 4px; animation: fadeInDown 0.2s ease; }
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+.custom-timer-label { font-size: 12px; font-weight: 600; color: var(--muted2); margin-bottom: 8px; }
+.custom-timer-inputs { display: flex; gap: 8px; }
+.custom-timer-input { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font); font-size: 14px; padding: 9px 12px; outline: none; -moz-appearance: textfield; }
+.custom-timer-input::-webkit-outer-spin-button, .custom-timer-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.custom-timer-input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(108,99,255,0.15); }
+.custom-timer-unit { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: var(--font); font-size: 13px; padding: 9px 10px; outline: none; cursor: pointer; }
+.custom-timer-unit:focus { border-color: var(--accent); }
+
 .apply-settings-btn { width: 100%; margin-top: 16px; background: linear-gradient(135deg, var(--accent), #8b5cf6); color: #fff; border: none; border-radius: 10px; padding: 11px; font-size: 14px; font-weight: 600; font-family: var(--font); cursor: pointer; transition: opacity 0.2s, transform 0.15s; }
 .apply-settings-btn:hover { opacity: 0.9; transform: scale(1.01); }
 

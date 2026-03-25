@@ -116,7 +116,21 @@
               <option value="60000">1 minute</option>
               <option value="300000">5 minutes</option>
               <option value="600000">10 minutes</option>
+              <option value="custom">Custom…</option>
             </select>
+          </div>
+
+          <!-- Custom timer input (shown when "Custom…" is selected) -->
+          <div class="custom-timer-row" id="customTimerRow" style="display:none">
+            <div class="custom-timer-label">⏱ Set custom duration:</div>
+            <div class="custom-timer-inputs">
+              <input type="number" id="customTimerValue" class="custom-timer-input" min="1" max="1440" value="15" placeholder="e.g. 15" />
+              <select id="customTimerUnit" class="custom-timer-unit">
+                <option value="1000">Seconds</option>
+                <option value="60000" selected>Minutes</option>
+                <option value="3600000">Hours</option>
+              </select>
+            </div>
           </div>
 
           <button class="apply-settings-btn" id="applySettingsBtn">Apply Settings</button>

@@ -185,7 +185,7 @@ socket.on('room-settings-updated', ({ roomName, autoDeleteMs, allowJoin }) => {
   roomAutoDelete[roomName] = autoDeleteMs || null;
   // Sync admin panel UI if open
   if (adminRooms.has(roomName) && document.getElementById('adminPanel').style.display !== 'none') {
-    document.getElementById('autoDeleteSelect').value = String(autoDeleteMs || 0);
+    syncCustomTimerUI(autoDeleteMs);
     document.getElementById('allowJoinToggle').checked = allowJoin;
   }
 });
@@ -214,13 +214,47 @@ document.getElementById('rejectBtn').addEventListener('click', () => {
 });
 
 // ── Admin panel ───────────────────────────────────────────────────────────────
+const PRESET_VALUES = ['0', '30000', '60000', '300000', '600000'];
+
+function syncCustomTimerUI(autoDeleteMs) {
+  const msStr = String(autoDeleteMs || 0);
+  const sel = document.getElementById('autoDeleteSelect');
+  const customRow = document.getElementById('customTimerRow');
+  if (PRESET_VALUES.includes(msStr)) {
+    sel.value = msStr;
+    customRow.style.display = 'none';
+  } else {
+    sel.value = 'custom';
+    customRow.style.display = '';
+    // Populate the custom fields with closest unit
+    const ms = autoDeleteMs || 0;
+    const valInput = document.getElementById('customTimerValue');
+    const unitSel = document.getElementById('customTimerUnit');
+    if (ms >= 3600000 && ms % 3600000 === 0) {
+      valInput.value = ms / 3600000;
+      unitSel.value = '3600000';
+    } else if (ms >= 60000 && ms % 60000 === 0) {
+      valInput.value = ms / 60000;
+      unitSel.value = '60000';
+    } else {
+      valInput.value = ms / 1000;
+      unitSel.value = '1000';
+    }
+  }
+}
+
+// Toggle custom timer visibility
+document.getElementById('autoDeleteSelect').addEventListener('change', (e) => {
+  document.getElementById('customTimerRow').style.display = e.target.value === 'custom' ? '' : 'none';
+});
+
 document.getElementById('adminSettingsBtn').addEventListener('click', () => {
   const panel = document.getElementById('adminPanel');
   panel.style.display = panel.style.display === 'none' ? '' : 'none';
   if (panel.style.display !== 'none' && currentTarget) {
     const room = onlineRooms.find(r => r.name === currentTarget);
     if (room) {
-      document.getElementById('autoDeleteSelect').value = String(room.autoDeleteMs || 0);
+      syncCustomTimerUI(room.autoDeleteMs);
       document.getElementById('allowJoinToggle').checked = room.allowJoin;
       renderMemberList(room);
     }
@@ -233,7 +267,18 @@ document.getElementById('closeAdminBtn').addEventListener('click', () => {
 
 document.getElementById('applySettingsBtn').addEventListener('click', () => {
   if (!currentTarget || !adminRooms.has(currentTarget)) return;
-  const ms = parseInt(document.getElementById('autoDeleteSelect').value, 10);
+  const selVal = document.getElementById('autoDeleteSelect').value;
+  let ms;
+  if (selVal === 'custom') {
+    const num = parseFloat(document.getElementById('customTimerValue').value);
+    const unit = parseInt(document.getElementById('customTimerUnit').value, 10);
+    if (!num || num <= 0) { showToast('⚠️ Enter a valid positive number', 'warn'); return; }
+    ms = Math.round(num * unit);
+    if (ms < 5000) { showToast('⚠️ Minimum is 5 seconds', 'warn'); return; }
+    if (ms > 86400000) { showToast('⚠️ Maximum is 24 hours', 'warn'); return; }
+  } else {
+    ms = parseInt(selVal, 10);
+  }
   const allowJoin = document.getElementById('allowJoinToggle').checked;
   socket.emit('update-room-settings', {
     roomName: currentTarget,
@@ -635,7 +680,10 @@ function formatSize(b) {
 function formatDuration(ms) {
   const s = ms / 1000;
   if (s < 60) return s + 's';
-  return (s / 60) + 'm';
+  const m = s / 60;
+  if (m < 60) return (Number.isInteger(m) ? m : m.toFixed(1)) + 'm';
+  const h = m / 60;
+  return (Number.isInteger(h) ? h : h.toFixed(1)) + 'h';
 }
 
 function fileIcon(name) {

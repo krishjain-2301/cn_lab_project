@@ -108,6 +108,15 @@ function isAdmin(roomName, socketId) {
   return rooms[roomName] && rooms[roomName].admin === socketId;
 }
 
+function formatDuration(ms) {
+  const s = ms / 1000;
+  if (s < 60) return s + 's';
+  const m = s / 60;
+  if (m < 60) return (Number.isInteger(m) ? m : m.toFixed(1)) + 'm';
+  const h = m / 60;
+  return (Number.isInteger(h) ? h : h.toFixed(1)) + 'h';
+}
+
 // ── Socket.io ─────────────────────────────────────────────────────────────────
 io.on('connection', (socket) => {
   console.log('[connect] ' + socket.id);
@@ -242,7 +251,13 @@ io.on('connection', (socket) => {
   socket.on('update-room-settings', ({ roomName, autoDeleteMs, allowJoin }) => {
     const room = rooms[roomName];
     if (!room || !isAdmin(roomName, socket.id)) return;
-    if (autoDeleteMs !== undefined) room.autoDeleteMs = autoDeleteMs;
+    if (autoDeleteMs !== undefined) {
+      // Validate and clamp custom timer values
+      if (autoDeleteMs !== null && typeof autoDeleteMs === 'number' && autoDeleteMs > 0) {
+        autoDeleteMs = Math.max(5000, Math.min(86400000, Math.round(autoDeleteMs)));
+      }
+      room.autoDeleteMs = autoDeleteMs;
+    }
     if (allowJoin !== undefined) room.settings.allowJoin = allowJoin;
     // Broadcast new settings to all room members
     io.to(roomName).emit('room-settings-updated', {
@@ -251,7 +266,7 @@ io.on('connection', (socket) => {
       allowJoin: room.settings.allowJoin
     });
     broadcastRoomList();
-    const delLabel = room.autoDeleteMs ? (room.autoDeleteMs / 1000) + 's auto-delete' : 'permanent messages';
+    const delLabel = room.autoDeleteMs ? formatDuration(room.autoDeleteMs) + ' auto-delete' : 'permanent messages';
     const joinLabel = room.settings.allowJoin ? 'open to new members' : 'closed to new members';
     io.to(roomName).emit('room-system', {
       roomName,
